@@ -11,7 +11,46 @@ pool:
 
 variables:
   buildConfiguration: 'Release'
+  solutionName: 'pipelines-dotnet-core.csproj'
+  azureSubscription: 'DemoPipelineResourceGroup'
+  appServiceName: 'DemoPipelineProject'
 
 steps:
-- script: dotnet build --configuration $(buildConfiguration)
-  displayName: 'dotnet build $(buildConfiguration)'
+- task: DotNetCoreCLI@2
+  displayName: 'Restore Project dependencies'
+  inputs:
+    command: 'restore'
+    projects: '**/*.csproj'
+
+- task: DotNetCoreCLI@2
+  displayName: 'Build project'
+  inputs:
+    command: 'build'
+    arguments: '--no-restore --configuration Release'
+    projects: '**/*.csproj'
+
+
+- task: DotNetCoreCLI@2
+  displayName: 'Publish project'
+  inputs:
+   command: 'publish'
+   arguments:  '--no-build --configuration Release --output $(Build.ArtifactStagingDirectory)/Release'
+   projects: $(solutionName)
+   publishWebProjects: false
+   zipAfterPublish: true
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish artifact'
+  condition: succeeded()
+
+- task: AzureWebApp@1
+  displayName: 'Deploy Web App to portal'
+  inputs:
+    appType: webAppLinux
+    azureSubscription: $(azureSubscription)
+    appName: $(appServiceName)
+    package: $(Build.ArtifactStagingDirectory)/Release/*.zip    
+
+# - script: dotnet build $(solutionName) --configuration $(buildConfiguration)
+#   displayName: 'dotnet build $(buildConfiguration)'
+
