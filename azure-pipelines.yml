@@ -43,13 +43,22 @@ steps:
   displayName: 'Publish artifact'
   condition: succeeded()
 
-- task: AzureWebApp@1
+- task: AzureRmWebAppDeployment@4
   displayName: 'Deploy Web App to portal'
   inputs:
-    appType: webAppLinux
-    azureSubscription: $(azureSubscription)
-    appName: $(appServiceName)
-    package: $(Build.ArtifactStagingDirectory)/Release/*.zip    
+   appType: webAppLinux
+   azureSubscription: $(azureSubscription)
+   WebAppName: $(appServiceName)
+   packageForLinux: $(Build.ArtifactStagingDirectory)/Release/*.zip
+   DeploymentType: runFromZip
+
+# - task: AzureWebApp@1
+#   displayName: 'Deploy Web App to portal'
+#   inputs:
+#     appType: webAppLinux
+#     azureSubscription: $(azureSubscription)
+#     appName: $(appServiceName)
+#     package: $(Build.ArtifactStagingDirectory)/Release/*.zip    
 
 # - script: dotnet build $(solutionName) --configuration $(buildConfiguration)
 #   displayName: 'dotnet build $(buildConfiguration)'
